@@ -36,7 +36,11 @@
       {{ busy ? 'Ingresando...' : 'Ingresar' }}
     </button>
 
-    <div class="message" *ngIf="message" [innerHTML]="message"></div>
+    <div class="message" *ngIf="messageTitle">
+      <strong>{{ messageTitle }}</strong>
+      <br *ngIf="messageDetail">
+      <span *ngIf="messageDetail">{{ messageDetail }}</span>
+    </div>
 
     <small>Laboratorio local. No utilices credenciales reales.</small>
   </section>
