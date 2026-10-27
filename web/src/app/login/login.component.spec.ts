@@ -126,4 +126,9 @@ describe('LoginComponent characterization', () => {
     expect(template).toContain('{{ messageTitle }}');
     expect(template).toContain('{{ messageDetail }}');
   });
+
+  it('keeps session storage access inside AuthService', () => {
+    const source = readFileSync(new URL('./login.component.ts', import.meta.url), 'utf8');
+    expect(source).not.toContain('localStorage');
+  });
 });
