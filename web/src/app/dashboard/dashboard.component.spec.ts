@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import '@angular/compiler';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ChangeDetectorRef, NgZone } from '@angular/core';
@@ -127,5 +128,10 @@ describe('DashboardComponent characterization', () => {
 
     expect(authService.clearSession).toHaveBeenCalledOnce();
     expect(router.navigate).toHaveBeenCalledWith(['/login']);
+  });
+
+  it('keeps session storage access inside AuthService', () => {
+    const source = readFileSync(new URL('./dashboard.component.ts', import.meta.url), 'utf8');
+    expect(source).not.toContain('localStorage');
   });
 });
