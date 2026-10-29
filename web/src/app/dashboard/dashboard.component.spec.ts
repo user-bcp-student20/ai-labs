@@ -113,12 +113,13 @@ describe('DashboardComponent characterization', () => {
   it('requests tasks with an empty owner when no user is stored', async () => {
     vi.mocked(authService.getUser).mockReturnValue(null);
     vi.mocked(tasksService.listTasks).mockResolvedValueOnce([]);
-    const { component } = createComponent(authService, tasksService);
+    const { component, router } = createComponent(authService, tasksService);
 
     await component.ngOnInit();
 
     expect(tasksService.listTasks).toHaveBeenCalledWith('', 'test-token');
     expect(component.user).toBeNull();
+    expect(router.navigate).not.toHaveBeenCalled();
   });
 
   it('clears token and user and navigates to login on logout', async () => {

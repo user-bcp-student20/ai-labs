@@ -30,7 +30,16 @@ export class AuthService {
 
   getUser(): AuthenticatedUser | null {
     const serializedUser = localStorage.getItem(USER_KEY);
-    return serializedUser ? JSON.parse(serializedUser) as AuthenticatedUser : null;
+    if (!serializedUser) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(serializedUser) as AuthenticatedUser;
+    } catch {
+      localStorage.removeItem(USER_KEY);
+      return null;
+    }
   }
 
   clearSession(): void {

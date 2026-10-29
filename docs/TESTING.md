@@ -133,3 +133,48 @@ La cobertura global adicional fue: statements 209/243 (86.00%), ramas 67/74 (90.
 
 1. Tras decidir la politica para JSON de usuario corrupto, agregar una prueba de regresion para H-WEB-09 que exija esa politica; actualmente `getUser()` puede rechazar antes del `try` de Dashboard.
 2. Cuando haya servicios de laboratorio disponibles, ejecutar una prueba de integracion que confirme el status/body real de login, la respuesta real de tareas y el rechazo real de un token invalido. Mantener separados esos resultados de los mocks unitarios.
+
+### Caracterizacion HU-01 (H-WEB-01, Pendiente)
+
+Directorio de trabajo: `web/`. Sin cambios de codigo fuente; solo specs y tasks.md. H-WEB-01 permanece Pendiente.
+
+| componente e IDs | comando | codigo de salida | resultado |
+|---|---|---:|---|
+| web; H-WEB-01 | `npx vitest run --coverage` (linea base, antes de cambios) | 0 | PASS: 6 archivos, 29 tests. |
+| web; H-WEB-01 | `npm test` (linea base, antes de cambios) | 0 | PASS: 6 archivos, 29 tests. |
+| web; H-WEB-01, H-WEB-09 | `npm test` (despues de caracterizacion) | 0 | PASS: 6 archivos, 32 tests. |
+| web; H-WEB-01, H-WEB-09 | `npx vitest run --coverage` (despues de caracterizacion) | 0 | PASS: 6 archivos, 32 tests. |
+
+Cobertura (V8) tras la caracterizacion: `auth.service.ts` 92.15% lineas, rama 85.71%; `login.component.ts` 100%; `dashboard.component.ts` 97.01% lineas, rama 82.35%; global 86% lineas, rama 90.54%, funciones 86.36%.
+
+Casos añadidos o reforzados (cada uno protege el requisito indicado):
+
+- `auth.service.spec.ts`: `getUser()` con `workshop_user` en JSON invalido devuelve `null` y elimina la clave. Politica aprobada para H-WEB-09 (tareas 3.1 y 3.2). Protege la gestion de sesion del spec "Centralized session storage".
+- `auth.service.spec.ts`: `saveSession()` con token vacio guarda `""` y `getToken()` lo devuelve sin validar. Protege "Centralized session storage".
+- `auth.service.spec.ts`: `clearSession()` conserva `workshop_preferences`. Protege "Storage keys preserved" y "Logout clears session".
+- `dashboard.component.spec.ts`: la prueba de owner vacio ahora tambien afirma que no hay redireccion a `/login` con token presente y usuario ausente. Protege "Dashboard requires session".
+
+Seccion 3 (H-WEB-01, H-WEB-09):
+
+| componente e IDs | comando | codigo de salida | resultado |
+|---|---|---:|---|
+| web; H-WEB-09 | `npx vitest run src/app/services/auth.service.spec.ts` (con prueba 3.1, antes de 3.2) | 1 | FALLA como se esperaba: la prueba espera `null` y recibe `SyntaxError`. |
+| web; H-WEB-01, H-WEB-09 | `npm test` (despues de 3.2) | 0 | PASS: 6 archivos, 32 tests. |
+| web; H-WEB-01, H-WEB-09 | `npx vitest run --coverage` (despues de 3.2) | 0 | PASS: 6 archivos, 32 tests. `auth.service.ts` 93.22% lineas, rama 86.66%; `dashboard.component.ts` rama 82.35%. |
+| web; H-WEB-01 | `npm run build` (despues de 3.2) | 0 | PASS. Aviso: `axios` no es ESM (no bloqueante). |
+
+Seccion 4 (H-WEB-01): sin cambios de codigo. Inspeccion: `login.component.ts` usa `AuthService` solo para `getPreferences()`, `login()`, `saveSession()` y `savePreferences()`; `dashboard.component.ts` lo usa solo en `ngOnInit()` (`getToken()`, `getUser()`) y `logout()` (`clearSession()`). Verificado por la prueba existente de no uso de `localStorage` en specs de login y dashboard.
+
+Seccion 5 (H-WEB-01, H-WEB-09):
+
+| componente e IDs | comando | codigo de salida | resultado |
+|---|---|---:|---|
+| web; H-WEB-01 | `npm test` (5.1) | 0 | PASS: 6 archivos, 32 tests. |
+| web; H-WEB-01 | `npx vitest run --coverage` (5.2) | 0 | PASS: `auth.service.ts` 93.22% lineas, rama 86.66%, funciones 100%; `login.component.ts` 100%; `dashboard.component.ts` 97.01% lineas, rama 82.35% (fuente sin cambios en este cambio; solo spec modificado); global 86.45% lineas, rama 90.66%. |
+| web; H-WEB-01 | `npm run build` (5.3) | 0 | PASS. Aviso: `axios` no es ESM (no bloqueante). |
+| web; H-WEB-01 | `grep localStorage web/src` (5.4) | n/a | Coincidencias: `auth.service.ts` (fuente) y specs (`auth.service.spec.ts`, `dashboard.component.spec.ts`, `login.component.spec.ts`). Ninguna en componentes. |
+| web; H-WEB-01 | verificacion de endpoints (5.5) | n/a | `environment.ts` no modificado (git); `/auth/login` y `/api/tasks` sin cambios en `auth.service.ts` ni `tasks.service.ts` (no modificado). |
+
+Nota de cobertura: el requisito de 85% se cumple en `auth.service.ts` (modificado). `dashboard.component.ts` queda en 82.35% de ramas; no se modifico su fuente, por lo que no se amplio el alcance. Pendiente de revision humana.
+
+Cobertura, pruebas y build ejecutados desde `web/`. Cambios de git: `git status` muestra `auth.service.ts`, `auth.service.spec.ts` y `dashboard.component.spec.ts` modificados; `tasks.service.ts` y `login.component.ts` sin cambios. Rama actual: `day2/skill-mcp-v2` (sin cambios de rama).
