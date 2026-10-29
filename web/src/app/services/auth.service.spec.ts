@@ -80,4 +80,27 @@ describe('AuthService characterization', () => {
     service.savePreferences({ theme: 'dark', showTips: false, compact: true });
     expect(values.get('workshop_preferences')).toBe(JSON.stringify({ theme: 'dark', showTips: false, compact: true }));
   });
+
+  it('returns null and removes the stored user when it is malformed JSON', () => {
+    service = new AuthService();
+    values.set('workshop_user', '{invalid');
+    expect(service.getUser()).toBeNull();
+    expect(values.has('workshop_user')).toBe(false);
+  });
+
+  it('stores an empty token as-is because the service does not validate it', () => {
+    service = new AuthService();
+    service.saveSession({ token: '', user: { username: 'student', displayName: 'Student', role: 'STUDENT' } });
+    expect(service.getToken()).toBe('');
+  });
+
+  it('keeps saved preferences after clearSession', () => {
+    service = new AuthService();
+    service.saveSession({ token: 'test-token', user: { username: 'student', displayName: 'Student', role: 'STUDENT' } });
+    service.savePreferences({ theme: 'dark', showTips: false, compact: true });
+
+    service.clearSession();
+
+    expect(values.get('workshop_preferences')).toBe(JSON.stringify({ theme: 'dark', showTips: false, compact: true }));
+  });
 });
